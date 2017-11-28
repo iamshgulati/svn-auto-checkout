@@ -1,4 +1,4 @@
-:: This script can be used to checkout any branch of all components of GDSP on local systems.
+:: This script can be used to checkout any/all branch(es) of any/all components of GDSP on local systems.
 :: author: shubham.gulati
 
 @echo off
@@ -22,18 +22,18 @@ IF NOT EXIST "%SVN_BIN%\svn.exe" (
 	echo [ERROR] Script will now exit...
 	echo.
 	pause
-	EXIT /B
-)
+	exit /b
+	)
 
 echo -- Setting variables --
 echo.
 
 :: Configure SOURCE and BRANCH as required.
-set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP
+set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP_Temp
 set BRANCH=FD_18_1
 
 set /p SOURCE= Enter the checkout location to proceed [default is "%SOURCE%"]: 
-set /p BRANCH= Enter a branch to proceed [default is "%BRANCH%"]: 
+set /p BRANCH= Enter a default branch to proceed [default is "%BRANCH%"]: 
 echo.
 
 echo SVN BIN = %SVN_BIN%
@@ -59,17 +59,61 @@ set /p ACCEPT_IGNORED_COMPONENTS= Please press 'y' or 'n' to proceed [default is
 echo.
 if "%ACCEPT_IGNORED_COMPONENTS%" == "n" (
 	exit /b
-)
+	)
 
 :: Prompt user to initialize the root directory.
 set MODE=u
-echo Do you want to delete everything in !SOURCE! and make a fresh start?
-echo NOTE: If you just want to checkout another branch along side existing branches please choose 'u'.
+echo Choose a checkout mode:
+echo  -- 'u' if you want to update existing local source with new components or new branches.
+echo  -- 'i' if you want to initialize a new local source repository.
 echo.
-set /p MODE= Please enter 'u' for 'Update' or 'i' for 'Initialize' to proceed [default mode is "%MODE%"]: 
+set /p MODE= Please enter 'u' or 'i' to proceed [default mode is "%MODE%"]: 
 echo.
 
 if "!MODE!" == "i" (
+
+	:: Check if selected checkout location exists.
+	if exist "%SOURCE%" (
+
+		:: Check if existing checkout location is empty. If not then offer to choose another checkout location.
+		set IS_EMPTY=y
+		for /F %%i in ('dir /b %SOURCE%\*.*') do (
+			set IS_EMPTY=n
+			)
+
+		if "!IS_EMPTY!" == "n" (
+			echo Chosen local source checkout location is not empty: [%SOURCE%]
+			echo.
+			set SOURCE=!SOURCE!_Temp
+			set /p SOURCE= Enter a different checkout location to proceed [default is "%SOURCE%_Temp"]:
+			)
+		) 
+
+	:: Check if selected checkout location does not exist and offer to create a new checkout location.
+	if not exist "!SOURCE!" (
+		set CREATE_NEW=y
+		echo Chosen local source checkout location does not exist: [!SOURCE!]
+		echo.
+		echo Do you want to create new directory for source? [!SOURCE!]
+		set /p CREATE_NEW= Please enter 'y' or 'n' to proceed [default is "!CREATE_NEW!"]: 
+		if "!CREATE_NEW!" == "y" (
+			mkdir !SOURCE!
+			if "!errorlevel!" EQU "0" (
+				echo New source location created. [!SOURCE!]
+				) else (
+				echo Error while creating new source. [!SOURCE!]
+				echo Script can not proceed without a valid checkout location.
+				echo Exiting...
+				pause
+				exit /b
+				)
+				) else (
+				echo Script can not proceed without a valid checkout location.
+				echo Exiting...
+				pause
+				exit /b
+				)
+				)
 
 	echo ======== Starting Checkout of GDSP Root ========
 	echo.
@@ -83,15 +127,9 @@ if "!MODE!" == "i" (
 		echo.
 		echo -- Checkout of %SVN_URL% Done.
 		echo.
-	)
+		)
 
 	echo ======== Starting Checkout of GDSP Components ========
-	echo.
-
-	:: Prompt user to choose a branch
-	set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
-	echo.
-	echo Branch to checkout: ["!BRANCH!"]
 	echo.
 
 	cd %SOURCE%
@@ -102,13 +140,13 @@ if "!MODE!" == "i" (
 		:: Check if component is in ignored components
 		if %%d == batch-loader (
 			set CHECKOUT_FLAG=n
-		)
+			)
 		if %%d == mail-server (
 			set CHECKOUT_FLAG=n
-		)
+			)
 		if %%d == PIG (
 			set CHECKOUT_FLAG=n
-		)
+			)
 
 		if !CHECKOUT_FLAG! == y (
 
@@ -118,14 +156,6 @@ if "!MODE!" == "i" (
 			set CONFIRM_CHECKOUT_COMPONENT=n
 			set /p CONFIRM_CHECKOUT_COMPONENT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_CHECKOUT_COMPONENT!"]: 
 			if !CONFIRM_CHECKOUT_COMPONENT! == y (
-
-				rem :: Update the existing source before checking out new component
-				rem echo.
-				rem echo -- Updating %SOURCE% from %SVN_URL%
-				rem echo -- Running update --
-				rem "%SVN_BIN%\svn.exe" update %SOURCE%
-				rem echo -- Update Done.
-				rem echo.
 
 				:: Checkout only immediate children of %COMPONENT% including folders
 				echo -- Checking out %SVN_URL%/%%d
@@ -147,6 +177,12 @@ if "!MODE!" == "i" (
 				echo ========================================================================================
 				echo.
 
+				:: Prompt user to choose a branch
+				set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+				echo.
+				echo Branch to checkout: ["!BRANCH!"]
+				echo.
+
 				:: Checkout %COMPONENT%\branches\!BRANCH!
 				echo -- Checking out %SVN_URL%/%%d/branches/!BRANCH!
 				echo.
@@ -155,14 +191,14 @@ if "!MODE!" == "i" (
 				echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
 				echo.
 				echo ========================================================================================
+				)
 			)
 		)
-	)
 
 	echo.
 	echo -- Checkout of GDSP Components Done.
 	echo.
-)
+	)
 
 if "!MODE!" == "u" (
 
@@ -177,11 +213,6 @@ if "!MODE!" == "u" (
 	echo ======== Starting Update of GDSP Components ========
 	echo.
 
-	:: Prompt user to choose a branch
-	set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
-	echo.
-	echo Branch to checkout: ["!BRANCH!"]
-
 	cd %SOURCE%
 	for /d %%d in (*) do (
 
@@ -190,13 +221,13 @@ if "!MODE!" == "u" (
 		:: Check if component is in ignored components
 		if %%d == batch-loader (
 			set CHECKOUT_FLAG=n
-		)
+			)
 		if %%d == mail-server (
 			set CHECKOUT_FLAG=n
-		)
+			)
 		if %%d == PIG (
 			set CHECKOUT_FLAG=n
-		)
+			)
 
 		if !CHECKOUT_FLAG! == y (
 
@@ -207,33 +238,10 @@ if "!MODE!" == "u" (
 			set /p CONFIRM_CHECKOUT_COMPONENT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_CHECKOUT_COMPONENT!"]: 
 			if !CONFIRM_CHECKOUT_COMPONENT! == y (
 
-				rem :: Update the existing source before checking out new component
-				rem echo.
-				rem echo -- Updating %SOURCE% from %SVN_URL%
-				rem echo -- Running update --
-				rem "%SVN_BIN%\svn.exe" update %SOURCE%
-				rem echo -- Update Done.
-				rem echo.
-
-				rem :: Checkout only immediate children of %COMPONENT% including folders
-				rem echo -- Checking out %SVN_URL%/%%d
-				rem echo.
-				rem "%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d" "%SOURCE%\%%d"
-				rem echo.
-				rem echo -- Checkout of %SVN_URL%/%%d Done.
-				rem echo.
-				rem echo ========================================================================================
-				rem echo.
-
-				rem :: Checkout only immediate children of %COMPONENT%\branches including folders
-				rem echo -- Checking out %SVN_URL%/%%d/branches
-				rem echo.
-				rem "%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d/branches" "%SOURCE%\%%d\branches"
-				rem echo.
-				rem echo -- Checkout of %SVN_URL%/%%d/branches Done.
-				rem echo.
-				rem echo ========================================================================================
-				rem echo.
+				:: Prompt user to choose a branch
+				set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+				echo.
+				echo Branch to checkout: ["!BRANCH!"]
 
 				:: Checkout %COMPONENT%\branches\!BRANCH!
 				echo -- Checking out %SVN_URL%/%%d/branches/!BRANCH!
@@ -243,22 +251,14 @@ if "!MODE!" == "u" (
 				echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
 				echo.
 				echo ========================================================================================
+				)
 			)
 		)
-	)
 
 	echo.
 	echo -- Update of GDSP Components Done.
 	echo.
-)
-
-rem :: Update the source for the final time to confirm there were no issues.
-rem echo.
-rem echo -- Updating %SOURCE% from %SVN_URL%
-rem echo -- Running update --
-rem "%SVN_BIN%\svn.exe" update %SOURCE%
-rem echo -- Update Done.
-rem echo.
+	)
 
 echo ======== CHECKOUT COMPLETE ========
 echo.
