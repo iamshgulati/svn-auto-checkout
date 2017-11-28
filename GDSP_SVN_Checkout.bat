@@ -8,17 +8,29 @@ cls
 echo =============== STARTING CHECKOUT ===============
 echo.
 echo ======== Initiating system ========
+echo.
 
 :: Do not change SVN_BIN and SVN_URL
 set SVN_BIN=C:\Program Files\TortoiseSVN\bin
 set SVN_URL=http://trac2.gdsp.uk.logica.com/svn
+
+:: Performing system checks
+IF NOT EXIST "%SVN_BIN%\svn.exe" (
+	echo.
+	echo [ERROR] Missing svn.exe at %SVN_BIN%\svn.exe.
+	echo [ERROR] Please re-install TortoiseSVN with commandline tools checked.
+	echo [ERROR] Script will now exit...
+	echo.
+	pause
+	EXIT /B
+)
 
 echo -- Setting variables --
 echo.
 
 :: Configure SOURCE and BRANCH as required.
 set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP
-set BRANCH=RFD_17_3
+set BRANCH=FD_18_1
 
 set /p SOURCE= Enter the checkout location to proceed [default is "%SOURCE%"]: 
 set /p BRANCH= Enter a branch to proceed [default is "%BRANCH%"]: 
