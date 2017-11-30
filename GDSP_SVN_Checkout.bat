@@ -29,8 +29,8 @@ echo -- Setting variables --
 echo.
 
 :: Configure SOURCE and BRANCH as required.
-set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP_Temp
-set BRANCH=FD_18_1
+set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP
+set BRANCH=FD_18_2
 
 set /p SOURCE= Enter the checkout location to proceed [default is "%SOURCE%"]: 
 set /p BRANCH= Enter a default branch to proceed [default is "%BRANCH%"]: 
