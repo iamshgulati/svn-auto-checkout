@@ -77,7 +77,14 @@ if "!MODE!" == "i" (
 
 		:: Check if existing checkout location is empty. If not then offer to choose another checkout location.
 		set IS_EMPTY=y
-		for /F %%i in ('dir /b %SOURCE%\*.*') do (
+
+		:: This will check for any existing directories or files in LOCAL SOURCE
+		rem for for /F %%i in ('dir /b %SOURCE%\*.*') do (
+		rem 	set IS_EMPTY=n
+		rem 	)
+
+		:: This will ignore existing files and only check for existing directories in LOCAL SOURCE (RECOMMENDED)
+		for /d %%d in (%SOURCE%\*.*) do (
 			set IS_EMPTY=n
 			)
 
@@ -87,7 +94,7 @@ if "!MODE!" == "i" (
 			set SOURCE=!SOURCE!_Temp
 			set /p SOURCE= Enter a different checkout location to proceed [default is "%SOURCE%_Temp"]:
 			)
-		) 
+		)
 
 	:: Check if selected checkout location does not exist and offer to create a new checkout location.
 	if not exist "!SOURCE!" (
@@ -155,42 +162,60 @@ if "!MODE!" == "i" (
 			echo -- Checking out %SVN_URL%/%%d
 			set CONFIRM_CHECKOUT_COMPONENT=n
 			set /p CONFIRM_CHECKOUT_COMPONENT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_CHECKOUT_COMPONENT!"]: 
+			echo.
 			if !CONFIRM_CHECKOUT_COMPONENT! == y (
 
 				:: Checkout only immediate children of %COMPONENT% including folders
 				echo -- Checking out %SVN_URL%/%%d
 				echo.
-				"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d" "%SOURCE%\%%d"
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
-				echo -- Checkout of %SVN_URL%/%%d Done.
-				echo.
-				echo ========================================================================================
-				echo.
+				if !CONFIRM_ACTION! == y (
+					"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d" "%SOURCE%\%%d"
+					echo.
+					echo -- Checkout of %SVN_URL%/%%d Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
 
 				:: Checkout only immediate children of %COMPONENT%\branches including folders
 				echo -- Checking out %SVN_URL%/%%d/branches
 				echo.
-				"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d/branches" "%SOURCE%\%%d\branches"
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
-				echo -- Checkout of %SVN_URL%/%%d/branches Done.
-				echo.
-				echo ========================================================================================
-				echo.
-
-				:: Prompt user to choose a branch
-				set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
-				echo.
-				echo Branch to checkout: ["!BRANCH!"]
-				echo.
+				if !CONFIRM_ACTION! == y (
+					"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d/branches" "%SOURCE%\%%d\branches"
+					echo.
+					echo -- Checkout of %SVN_URL%/%%d/branches Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
 
 				:: Checkout %COMPONENT%\branches\!BRANCH!
-				echo -- Checking out %SVN_URL%/%%d/branches/!BRANCH!
+				echo -- Checking out a branch of [ %%d ]
 				echo.
-				"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
-				echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
-				echo.
-				echo ========================================================================================
+				if !CONFIRM_ACTION! == y (
+
+					:: Prompt user to choose a branch
+					set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+					echo.
+					echo Checking out branch: ["!BRANCH!"]
+					echo.
+
+					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+					echo.
+					echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
 				)
 			)
 		)
@@ -203,12 +228,26 @@ if "!MODE!" == "i" (
 if "!MODE!" == "u" (
 
 	:: Update the existing source before checking out new component
+	rem echo.
+	rem echo -- Updating %SOURCE% from %SVN_URL%
+	rem echo -- Running update --
+	rem "%SVN_BIN%\svn.exe" update %SOURCE%
+	rem echo -- Update Done.
+	rem echo.
+
+	echo ======== Starting Update of GDSP Root ========
 	echo.
-	echo -- Updating %SOURCE% from %SVN_URL%
-	echo -- Running update --
-	"%SVN_BIN%\svn.exe" update %SOURCE%
-	echo -- Update Done.
+	echo -- Checking out %SVN_URL%
+	set CONFIRM_UPDATE_ROOT=y
+	set /p CONFIRM_UPDATE_ROOT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_UPDATE_ROOT!"]: 
 	echo.
+
+	if "!CONFIRM_UPDATE_ROOT!" == "y" (
+		"%SVN_BIN%\svn.exe" update --depth=immediates %SOURCE%
+		echo.
+		echo -- Update of %SOURCE% Done.
+		echo.
+		)
 
 	echo ======== Starting Update of GDSP Components ========
 	echo.
@@ -216,47 +255,86 @@ if "!MODE!" == "u" (
 	cd %SOURCE%
 	for /d %%d in (*) do (
 
-		set CHECKOUT_FLAG=y
+		set UPDATE_FLAG=y
 
 		:: Check if component is in ignored components
 		if %%d == batch-loader (
-			set CHECKOUT_FLAG=n
+			set UPDATE_FLAG=n
 			)
 		if %%d == mail-server (
-			set CHECKOUT_FLAG=n
+			set UPDATE_FLAG=n
 			)
 		if %%d == PIG (
-			set CHECKOUT_FLAG=n
+			set UPDATE_FLAG=n
 			)
 
-		if !CHECKOUT_FLAG! == y (
+		if !UPDATE_FLAG! == y (
 
-			:: Start checking out component
+			:: Start updating component
 			echo.
-			echo -- Checking out %SVN_URL%/%%d
-			set CONFIRM_CHECKOUT_COMPONENT=n
-			set /p CONFIRM_CHECKOUT_COMPONENT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_CHECKOUT_COMPONENT!"]: 
-			if !CONFIRM_CHECKOUT_COMPONENT! == y (
+			echo -- Updating %SVN_URL%/%%d
+			set CONFIRM_UPDATE_COMPONENT=n
+			set /p CONFIRM_UPDATE_COMPONENT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_UPDATE_COMPONENT!"]: 
+			echo.
+			if !CONFIRM_UPDATE_COMPONENT! == y (
 
-				:: Prompt user to choose a branch
-				set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+				:: Update only immediate children of %COMPONENT% including folders
+				echo -- Updating %SOURCE%\%%d
 				echo.
-				echo Branch to checkout: ["!BRANCH!"]
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				echo.
+				if !CONFIRM_ACTION! == y (
+					"%SVN_BIN%\svn.exe" update --depth=immediates "%SOURCE%\%%d"
+					echo.
+					echo -- Update of %SOURCE%\%%d Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
+
+				:: Update only immediate children of %COMPONENT%\branches including folders
+				echo -- Updating %SOURCE%\%%d\branches
+				echo.
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				echo.
+				if !CONFIRM_ACTION! == y (
+					"%SVN_BIN%\svn.exe" update --depth=immediates "%SOURCE%\%%d\branches"
+					echo.
+					echo -- Update of %SOURCE%\%%d\branches Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
 
 				:: Checkout %COMPONENT%\branches\!BRANCH!
-				echo -- Checking out %SVN_URL%/%%d/branches/!BRANCH!
+				echo -- Checking out a branch of [ %%d ]
 				echo.
-				"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+				set CONFIRM_ACTION=y
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
-				echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
-				echo.
-				echo ========================================================================================
+				if !CONFIRM_ACTION! == y (
+
+					:: Prompt user to choose a branch
+					set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+					echo.
+					echo Checking out branch: ["!BRANCH!"]
+					echo.
+
+					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+					echo.
+					echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
+					echo.
+					echo ========================================================================================
+					echo.
+					)
 				)
 			)
 		)
 
 	echo.
-	echo -- Update of GDSP Components Done.
+	echo -- Checkout of GDSP Components Done.
 	echo.
 	)
 
