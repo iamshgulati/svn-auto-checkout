@@ -169,7 +169,7 @@ if "!MODE!" == "i" (
 				echo -- Checking out %SVN_URL%/%%d
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 					"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d" "%SOURCE%\%%d"
@@ -184,7 +184,7 @@ if "!MODE!" == "i" (
 				echo -- Checking out %SVN_URL%/%%d/branches
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 					"%SVN_BIN%\svn.exe" checkout --depth=immediates "%SVN_URL%/%%d/branches" "%SOURCE%\%%d\branches"
@@ -199,19 +199,20 @@ if "!MODE!" == "i" (
 				echo -- Checking out a branch of [ %%d ]
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 
 					:: Prompt user to choose a branch
-					set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+					set SELECED_BRANCH=!BRANCH!
+					set /p SELECED_BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
 					echo.
-					echo Checking out branch: ["!BRANCH!"]
+					echo Checking out branch: ["!SELECED_BRANCH!"]
 					echo.
 
-					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!SELECED_BRANCH!" "%SOURCE%\%%d\branches\!SELECED_BRANCH!"
 					echo.
-					echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
+					echo -- Checkout of %SVN_URL%/%%d/branches/!SELECED_BRANCH! Done.
 					echo.
 					echo ========================================================================================
 					echo.
@@ -282,7 +283,7 @@ if "!MODE!" == "u" (
 				echo -- Updating %SOURCE%\%%d
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 					"%SVN_BIN%\svn.exe" update --depth=immediates "%SOURCE%\%%d"
@@ -297,7 +298,7 @@ if "!MODE!" == "u" (
 				echo -- Updating %SOURCE%\%%d\branches
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 					"%SVN_BIN%\svn.exe" update --depth=immediates "%SOURCE%\%%d\branches"
@@ -312,19 +313,20 @@ if "!MODE!" == "u" (
 				echo -- Checking out a branch of [ %%d ]
 				echo.
 				set CONFIRM_ACTION=y
-				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 
 					:: Prompt user to choose a branch
-					set /p BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
+					set SELECED_BRANCH=!BRANCH!
+					set /p SELECED_BRANCH= Please enter a branch to proceed [default is "!BRANCH!"]: 
 					echo.
-					echo Checking out branch: ["!BRANCH!"]
+					echo Checking out branch: ["!SELECED_BRANCH!"]
 					echo.
 
-					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!BRANCH!" "%SOURCE%\%%d\branches\!BRANCH!"
+					"%SVN_BIN%\svn.exe" checkout --depth=infinity "%SVN_URL%/%%d/branches/!SELECED_BRANCH!" "%SOURCE%\%%d\branches\!SELECED_BRANCH!"
 					echo.
-					echo -- Checkout of %SVN_URL%/%%d/branches/!BRANCH! Done.
+					echo -- Checkout of %SVN_URL%/%%d/branches/!SELECED_BRANCH! Done.
 					echo.
 					echo ========================================================================================
 					echo.
