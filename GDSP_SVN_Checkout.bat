@@ -30,7 +30,7 @@ echo.
 
 :: Configure SOURCE and BRANCH as required.
 set SOURCE=C:\Data\CGI\Projects\Vodafone\GDSP
-set BRANCH=FD_18_2
+set BRANCH=FD_18_3
 
 set /p SOURCE= Enter the checkout location to proceed [default is "%SOURCE%"]: 
 set /p BRANCH= Enter a default branch to proceed [default is "%BRANCH%"]: 
@@ -239,7 +239,7 @@ if "!MODE!" == "u" (
 	echo ======== Starting Update of GDSP Root ========
 	echo.
 	echo -- Checking out %SVN_URL%
-	set CONFIRM_UPDATE_ROOT=y
+	set CONFIRM_UPDATE_ROOT=n
 	set /p CONFIRM_UPDATE_ROOT= Please press 'y' or 'n' to proceed [default is "!CONFIRM_UPDATE_ROOT!"]: 
 	echo.
 
