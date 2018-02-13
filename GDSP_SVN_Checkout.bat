@@ -313,7 +313,7 @@ if "!MODE!" == "u" (
 				echo -- Checking out a branch of [ %%d ]
 				echo.
 				set CONFIRM_ACTION=y
-				rem set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
+				set /p CONFIRM_ACTION= Please press 'y' or 'n' to proceed [default is "!CONFIRM_ACTION!"]: 
 				echo.
 				if !CONFIRM_ACTION! == y (
 
